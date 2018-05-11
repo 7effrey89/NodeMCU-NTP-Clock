@@ -5,7 +5,7 @@
 <img src="https://cdn.shopify.com/s/files/1/0672/9409/products/NodeMCU_ESP8266_development_board_1024x1024.jpg" width="250">
 
 ##### TM1637 
-![TM1637](extras/img/TM1637-4-digit-colon.jpg)
+![TM1637](https://github.com/bremme/arduino-tm1637/raw/master/extras/img/TM1637-4-digit-colon.jpg)
 
 # Hardware setup
 
