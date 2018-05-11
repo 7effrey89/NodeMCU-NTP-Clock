@@ -38,3 +38,11 @@ Status messages that appears on the TM1637 display:
 - NO SYNC = NodeMCU could not connect to the NCP server, and will restart the device to make the attempt to connect. (This might happen a few times before it connects..)
 - The colon (:) dissapear in the middle of the display, it means it lost the connect to the NTP server; the clock will continue to work, and will sync later if the connection appears.
 
+##### RESET WIFI CREDENTIALS
+1. Turn off the NodeMCU
+2. Hold down the button connected to D3 while you power on NodeMCU.
+3. the TM1637 display will show "SETUP", follow the instruction above: Get Started.
+
+##### Credits
+Big thank you to Sebouh for making the inital sketch, watch his youtube demonstration at:
+http://www.instructables.com/id/ESP8266-NTP-TIMEZONE-CLOCK-WITH-WiFi-MANAGER/
