@@ -16,17 +16,92 @@ For Compiling USE Arduino IDE 1.6.5
 const byte PIN_CLK = D6;   // define CLK pin (any digital pin)
 const byte PIN_DIO = D5;   // define DIO pin (any digital pin)
 SevenSegmentExtended    display(PIN_CLK, PIN_DIO);
-int resetBtnPin = 3;
+int resetBtnPin = 3;      //Reset button to reset wifi
+
+//Configuration
+#define HOSTNAME "NTP Clock"
+//#define AP_PASSWORD "Password123" //Uncomment to enable wifi password to access the Access Point, when WIFI credentials are unset.
 
 //Edit These Lines According To Your Timezone and Daylight Saving Time
 //TimeZone Settings Details https://github.com/JChristensen/Timezone
-TimeChangeRule CEST = {"CEST", Last, Sun, Mar, 2, 120};     //Central European Time (Brussels, Copenhagen, Madrid, Paris)
-TimeChangeRule CET = {"CET ", Last, Sun, Oct, 3, 60};       //Central European Time (Brussels, Copenhagen, Madrid, Paris)
-Timezone CE(CEST, CET);
+
+//Uncomment to use predefined timezone
+
+//#define ausET // Australia Eastern Time Zone (Sydney, Melbourne)
+#define CE    // Central European Time (Frankfurt, Brussels, Copenhagen, Madrid, Paris)
+//#define UK    // United Kingdom (London, Belfast)
+//#define UTC   // UTC
+//#define usET  // US Eastern Time Zone (New York, Detroit)
+//#define usCT  // US Central Time Zone (Chicago, Houston)
+//#define usMT  // US Mountain Time Zone (Denver, Salt Lake City)
+//#define usAZ  // Arizona is US Mountain Time Zone but does not use DST
+//#define usPT  // // US Pacific Time Zone (Las Vegas, Los Angeles)
+
+//Predefined timezones
+#ifdef ausET
+// Australia Eastern Time Zone (Sydney, Melbourne)
+TimeChangeRule aEDT = {"AEDT", First, Sun, Oct, 2, 660};    // UTC + 11 hours
+TimeChangeRule aEST = {"AEST", First, Sun, Apr, 3, 600};    // UTC + 10 hours
+Timezone myLocalTime(aEDT, aEST);
+#endif
+
+#ifdef CE
+// Central European Time (Frankfurt, Paris)
+TimeChangeRule CEST = {"CEST", Last, Sun, Mar, 2, 120};     // Central European Summer Time
+TimeChangeRule CET = {"CET ", Last, Sun, Oct, 3, 60};       // Central European Standard Time
+Timezone myLocalTime(CEST, CET);
+#endif
+
+#ifdef UK
+// United Kingdom (London, Belfast)
+TimeChangeRule BST = {"BST", Last, Sun, Mar, 1, 60};        // British Summer Time
+TimeChangeRule GMT = {"GMT", Last, Sun, Oct, 2, 0};         // Standard Time
+Timezone myLocalTime(BST, GMT);
+#endif
+
+#ifdef UTC
+// UTC
+TimeChangeRule utcRule = {"UTC", Last, Sun, Mar, 1, 0};     // UTC
+Timezone myLocalTime(utcRule, utcRule);
+#endif
+
+#ifdef usET
+// US Eastern Time Zone (New York, Detroit)
+TimeChangeRule usEDT = {"EDT", Second, Sun, Mar, 2, -240};  // Eastern Daylight Time = UTC - 4 hours
+TimeChangeRule usEST = {"EST", First, Sun, Nov, 2, -300};   // Eastern Standard Time = UTC - 5 hours
+Timezone myLocalTime(usEDT, usEST);
+#endif
+
+#ifdef usCT
+// US Central Time Zone (Chicago, Houston)
+TimeChangeRule usCDT = {"CDT", Second, dowSunday, Mar, 2, -300};
+TimeChangeRule usCST = {"CST", First, dowSunday, Nov, 2, -360};
+Timezone myLocalTime(usCDT, usCST);
+#endif
+
+#ifdef usMT
+// US Mountain Time Zone (Denver, Salt Lake City)
+TimeChangeRule usMDT = {"MDT", Second, dowSunday, Mar, 2, -360};
+TimeChangeRule usMST = {"MST", First, dowSunday, Nov, 2, -420};
+Timezone myLocalTime(usMDT, usMST);
+#endif
+
+#ifdef usAZ
+// Arizona is US Mountain Time Zone but does not use DST
+Timezone myLocalTime(usMST, usMST);
+#endif
+
+#ifdef usPT
+// US Pacific Time Zone (Las Vegas, Los Angeles)
+TimeChangeRule usPDT = {"PDT", Second, dowSunday, Mar, 2, -420};
+TimeChangeRule usPST = {"PST", First, dowSunday, Nov, 2, -480};
+Timezone myLocalTime(usPDT, usPST);
+#endif
+
+
 //Pointer To The Time Change Rule, Use to Get The TZ Abbrev
 TimeChangeRule *tcr;
 time_t utc, local;
-
 
 //NTP Server http://tf.nist.gov/tf-cgi/servers.cgi
 static const char ntpServerName[] = "time.nist.gov";
@@ -73,11 +148,12 @@ void setup() {
   next line if password required)
   and goes into a blocking loop awaiting configuration
   */
-  //If You Require Password For Your NTP Clock
-  // if (!wifiManager.autoConnect("NTP Clock", "password"))
-  
-  //If You Dont Require Password For Your NTP Clock
-  if (!wifiManager.autoConnect("NTP Clock")) {
+
+  #ifdef AP_PASSWORD
+  if (!wifiManager.autoConnect(HOSTNAME, AP_PASSWORD)){   //If You Require Password For Your NTP Clock
+  #else
+  if (!wifiManager.autoConnect(HOSTNAME)) {               //If You Dont Require Password For Your NTP Clock
+  #endif
     delay(3000);
     ESP.reset();
     delay(5000);
@@ -111,7 +187,7 @@ void loop() {
   static time_t prevDisplay = 0;
   timeStatus_t ts = timeStatus();
   utc = now();
-  local = CE.toLocal(utc, &tcr);
+  local = myLocalTime.toLocal(utc, &tcr);
   
   switch (ts) {
     case timeNeedsSync:
@@ -234,5 +310,4 @@ void configModeCallback (WiFiManager *myWiFiManager) {
   display.print("SETUP");      // display SETUP on the display
   delay(2000);
 }
-
 
